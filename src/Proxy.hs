@@ -3,12 +3,14 @@
 module Proxy
   ( ProxyFailures(..)
   , ProxyResponse
-  , ProxyStatus(..)
   , Accumulator
+  , Checking(..)
   , IP(..)
   , ProxyState(..)
   , ProxyT
+  , CheckResponse
   , statusColor
+  , statusStr
   ) where
 
 import Control.Monad.Trans.Except
@@ -29,33 +31,34 @@ newtype IP =
   IP BL.ByteString
   deriving (Show)
 
-type ProxyResponse = ExceptT ProxyFailures IO
+type ProxyResponse = ExceptT HttpExceptionContent IO
 
-data ProxyStatus
-  = Checking
-  | Invalid
-  | Valid
+data Checking =
+  Checking
   deriving (Show)
 
-statusColor :: ProxyStatus -> Color
-statusColor Checking = Yellow
-statusColor Invalid = Red
-statusColor Valid = Green
+statusColor :: Either Checking (Maybe HttpExceptionContent) -> Color
+statusColor (Left Checking) = Yellow
+statusColor (Right (Just _)) = Red
+statusColor (Right Nothing) = Green
+
+statusStr :: Either Checking (Maybe HttpExceptionContent) -> String
+statusStr (Left Checking) = "⏳ Checking..."
+statusStr (Right (Just e)) = "❌ Error: " <> show e
+statusStr (Right Nothing) = "✅ Working!"
 
 data ProxyState =
   ProxyState
     { proxyS :: Proxy
-    , stateS :: ProxyStatus
-    }
-  deriving (Show)
+    , errorS :: Either Checking (Maybe HttpExceptionContent)
+    } -- deriving (Show)
 
-deriving instance Eq ProxyStatus
-
-deriving instance Eq ProxyState
-
-instance Ord ProxyState where
-  (ProxyState h1 _) `compare` (ProxyState h2 _) = h1 `compare` h2
-
+-- deriving instance Eq ProxyStatus
+-- deriving instance Eq ProxyState
+-- instance Ord ProxyState where
+--   (ProxyState h1 _) `compare` (ProxyState h2 _) = h1 `compare` h2
 type Accumulator = M.Map B.ByteString ProxyState
 
 type ProxyT = ReaderT Proxy IO
+
+type CheckResponse = (Proxy, Maybe HttpExceptionContent)

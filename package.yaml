@@ -27,6 +27,7 @@ dependencies:
   - bytestring
   - async
   - containers
+  - exceptions
   - split
   - ansi-terminal
   - base >= 4.7 && < 5
