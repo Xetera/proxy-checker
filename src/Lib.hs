@@ -12,7 +12,6 @@ import Control.Concurrent.Async
 import Control.Concurrent.Chan
 import Control.Concurrent.MVar
 import Control.Exception.Safe
-import Control.Monad.IO.Class
 import qualified Data.ByteString.Char8 as C8
 import Data.Either
 import Data.List
@@ -47,7 +46,7 @@ addProxy proxy = managerSetProxy (useProxy proxy)
 -- the first place but whatever
 findProxyIP :: Proxy -> IO (Either HttpExceptionContent IP)
 findProxyIP proxy = do
-  man <- liftIO . newManager $ addProxy proxy defaultManagerSettings
+  man <- newManager $ addProxy proxy defaultManagerSettings
   res <- tryAsync $ httpLbs endpoint man
   return $
     case res of
