@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE NamedFieldPuns #-}
@@ -55,8 +54,7 @@ addProxy proxy = managerSetProxy (useProxy proxy)
 findProxyIP :: Proxy -> IO (Either HttpExceptionContent IP)
 findProxyIP proxy = do
   man <- liftIO . newManager $ addProxy proxy defaultManagerSettings
-  res <-
-    tryAsync $ httpLbs endpoint man :: IO (Either HttpException (Response BL.ByteString))
+  res <- tryAsync $ httpLbs endpoint man
   return $
     case res of
       Right a -> return . IP $ responseBody a
@@ -119,15 +117,14 @@ resultsChannel tasks = do
   forkIO (insertResults chan tasks)
   pure chan
   where
-    insertResults :: Chan (Maybe ProxyState) -> [Async CheckResponse] -> IO ()
     insertResults chan [] = writeChan chan Nothing
     insertResults chan tasks = do
       (a, (proxyS, errorS)) <- waitAny tasks
-      writeChan chan $ Just $ ProxyState {proxyS, errorS = Right errorS}
+      writeChan chan . Just $ ProxyState {proxyS, errorS = Right errorS}
       insertResults chan (a `delete` tasks)
 
 -- we need to retain the context of the proxy that's
--- being checked so we return a (Proxy, Bool) tuple
+-- being checked so we return a (Proxy, Maybe Error) tuple
 checkProxy :: Proxy -> IO (Async CheckResponse)
 checkProxy proxy = do
   working <- isProxyWorking proxy
@@ -140,8 +137,8 @@ run path = do
   printProxies defaultProxies
   -- using the ip as the key for the map
   let proxyState =
-        M.fromList
-          (map (\prox -> (proxyHost $ proxyS prox, prox)) defaultProxies)
+        M.fromList $
+        map (\prox -> (proxyHost $ proxyS prox, prox)) defaultProxies
   proxyM <- newMVar proxyState
   tasks <- traverse checkProxy proxyList
   chan <- resultsChannel tasks
