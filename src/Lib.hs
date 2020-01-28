@@ -59,7 +59,7 @@ findProxyIP proxy = do
     tryAsync $ httpLbs endpoint man :: IO (Either HttpException (Response BL.ByteString))
   return $
     case res of
-      Right a -> return $ IP $ responseBody a
+      Right a -> return . IP $ responseBody a
       Left (HttpExceptionRequest _ b) -> Left b
 
 extractError :: Either a b -> Maybe a

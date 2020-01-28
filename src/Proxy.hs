@@ -1,5 +1,3 @@
-{-# LANGUAGE StandaloneDeriving #-}
-
 module Proxy
   ( ProxyFailures(..)
   , ProxyResponse
