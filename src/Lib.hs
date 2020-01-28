@@ -11,19 +11,13 @@ import Control.Concurrent
 import Control.Concurrent.Async
 import Control.Concurrent.Chan
 import Control.Concurrent.MVar
-import qualified Control.Exception as E
 import Control.Exception.Safe
-import Control.Monad
 import Control.Monad.IO.Class
-import Control.Monad.Trans.Except
-import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as C8
-import qualified Data.ByteString.Lazy as BL
 import Data.Either
 import Data.List
 import Data.List.Split
 import qualified Data.Map as M
-import Data.Maybe
 import Network.HTTP.Client
 import Network.HTTP.Types.Status
 import Proxy
